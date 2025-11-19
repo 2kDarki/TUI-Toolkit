@@ -1,0 +1,7 @@
+__pycache__/
+<<<<<<< HEAD
+*.pyc
+data/
+=======
+*.pyc
+>>>>>>> 2c5fda3 (Polished logic)

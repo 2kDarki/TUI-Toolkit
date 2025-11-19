@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "setuptools-scm[toml]>=6.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tuikit"
+version = "0.1.0"
+description = "Lightweight TUI utilities: console, text, lists, timezones and logic helpers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Caleb M. Sibanda", email = "darkian.dev@gmail.com" }]
+keywords = ["tui", "cui", "console", "timezone", "utilities", "toolkit"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries"
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "build",
+  "twine",
+  "ruff",
+  "black",
+  "mypy"
+]
+
+[project.urls]
+Homepage = "https://github.com/2kDarki"
+Repository = "https://github.com/2kDarki/TUI-Toolkit"
+Issues = "https://github.com/2kDarki/TUI-Toolkit/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tuikit", "tuikit.*"]
+
+[tool.setuptools.package-data]
+"tuikit" = ["tzdata/*.json", "*.pyi"]
+
+[tool.setuptools_scm]
+write_to = "tuikit/_version.py"
+version_scheme = "post-release"
+local_scheme = "node-and-timestamp"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
