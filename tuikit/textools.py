@@ -49,12 +49,72 @@ class Align:
                  err=err)
         return wrap_text(str(arg), pad, pad)
 
+def keep_split(text:str, sep=" "):
+    parts = text.split(sep)
+    if len(parts) < 2: return parts
+    elif len(parts) == 2:
+        if parts[1] == "": return [parts[0]+sep]
+        else: return [parts[0]+sep, parts[1]]
+    if parts[-1] == "":
+        parts[-2] += sep
+        parts = parts[:-1]
+    
+    final = []
+    for part in parts:
+        if not part.endswith(sep):
+            part += sep
+        final.append(part)
+    return final
+
+def transmit(*msg:str, speed: int|float = 0.1,
+             hold: int|float = 0.3,
+             hue: str|None = None,
+             inline:bool = False) -> None:
+    validate([[speed, hold], [int, float], 
+             "positive number", "less", 0], err=err)
+
+    if len(msg) == 1: msg = str(msg[0])
+    else: msg = " ".join([str(p) for p in msg])
+    
+    paragraphs = msg.split("\n\n")
+    text       = ""
+    para_len   = len(paragraphs)
+    for pi, paragraph in enumerate(paragraphs):
+        lines = paragraph.split("\n")
+        for li, line in enumerate(lines):
+            styled_words = keep_split(line, "[0m")
+            sentence     = ""
+            for word in styled_words:
+                styled_word = style_text(word, hue)
+                sentence += styled_word
+            sentence = wrap_text(sentence)
+            if inline: 
+                text += sentence
+                if li != len(lines) - 1: text += "\n"
+                continue
+            for ch in sentence:
+                delay = speed
+                if ch == " ": delay = hold
+                if logictools.any_in(ch, 
+                    eq=["[", "0", "m"]): delay = 0
+                print(ch, end="", flush=True)
+                time.sleep(delay)
+            if len(lines) > 1: 
+                print()
+        
+        if inline: 
+            if pi != len(paragraphs) - 1: text += "\n\n"
+        elif para_len > 1 and pi != para_len-1: print()
+    
+    if inline: return text
+    if len(paragraphs) == 1: print()
+
 def strip_ansi(s:str) -> str:
     if not isinstance(s, str): err(s, "string") 
     return re.sub(r'\x1B[@-_][0-?]*[ -/]*[@-~]', '', s)
 
-def visual_width(s:str) -> int:
-    clean = strip_ansi(s)
+def visual_width(s:Any) -> int:
+    clean = strip_ansi(str(s))
     width = 0
     for ch in clean:
         width += 2 if unicodedata.east_asian_width(
@@ -72,12 +132,57 @@ def pluralize(n: int|float, word:str) -> str:
             return word[:-1]+"ies"
         return word + 's'
 
+def styled(text:str, get:bool = False) -> bool|list:
+    def append(hues:list, array:list) -> list:
+        for i, hue in enumerate(hues):
+            if hue in codes: array.append(hues[i])
+        return array
+    
+    validate([text, str, "string"], err=err)
+    text = preserve_codes(text)
+    if "\\033" not in text: 
+        return False if not get else []
+    if not get: return True
+    if text == "\\033": return []
+    
+    chars = text.split()
+    try: start = chars.index("[") + 1
+    except ValueError: return []
+    end   = chars.index("m")
+    parts = [p for p in chars[start: end]]
+    codes = "".join(parts).split(";")
+    codes = [int(c) if len(c) == 2 else c for c in codes]
+    
+    bold      = "1"
+    underline = "4"
+    fgs       = [n for n in range(30, 38)]
+    bgs       = [n for n in range(90, 97)]
+    
+    styles = []
+    if bold in codes: styles.append(bold)
+    if underline in codes: styles.append(underline)
+    styles = append(fgs, styles)
+    return   append(bgs, styles)
+
 def style_text(text, fg: str = "", bg: str = "",
                underline: bool = False,
                bold: bool = False) -> str:
+    def append(array:list, _type:str="fg") -> list:
+        try:
+            start, end = 30, 38
+            if _type == "bg": start, end = 90, 97
+            for n in range(start, end):
+                if n in styles: array.append(str(n))
+            return array
+        except TypeError: return array
+       
     validate([[underline, bold], bool, "boolean"], err=err)
     
-    text   = str(text)
+    special = "\n" in str(text)
+    clean  = strip_ansi(str(text))
+    style  = []
+    styles = styled(str(text), get=True)
+    if not styles: clean = str(text)
     colors = {
         "black": 30, "red": 31, "green": 32, 
         "yellow": 33, "blue": 34, "magenta": 35,
@@ -90,29 +195,45 @@ def style_text(text, fg: str = "", bg: str = "",
     for c in [fg, bg]:
         if c and c not in colors: err(c, "color")
     
-    style = []
+    if special: 
+        return transmit(str(text), hue=fg, inline=True)
     
-    if bold: style.append("1")
-    if underline: style.append("4")
+    if bold or "1" in styles: style.append("1")
+    if underline or "4" in styles: style.append("4")
     if fg: style.append(str(colors[fg]))
+    else: style = append(style)
     if bg: style.append(str(colors[bg] + 10))
-
+    else: style = append(style, "bg")
+    
     if style:
-        return f"\033[{';'.join(style)}m{text}\033[0m"
-    return text
+        return f"\033[{';'.join(style)}m{clean}\033[0m"
+    return clean
 
 def wrap_text(text: str, indent: int = 0, pad: int = 0, 
               inline: bool = False, order: str = '', 
-              from_center: list = []) -> str:
+              from_center: list = [],
+              _internal: bool = False) -> str:
     # Validate parameters
     validate(
-      [[text, order], str, "string"],
+      [order, str, "string"],
       [[indent, pad], int, "natural number","less",0],
-      [inline, bool, "boolean"],
+      [[inline, _internal], bool, "boolean"],
       [from_center, list, "list"], err=err)
     
     width = logictools.get_term_size()
-    styled_words = text.split()
+    if not text: return ""
+    if _internal:
+        if isinstance(text, list):
+            styled_words   = text[0].split()
+            rest           = text[1:]
+        else: styled_words = text.split()
+    else:
+        styled_words = text.split()
+        lines = text.split("\n")
+        if len(lines) > 1:
+            _internal    = True
+            styled_words = lines[0].split()
+            rest         = lines[1:]
     
     if from_center:
         h, l, lh, total_pad = from_center
@@ -134,8 +255,11 @@ def wrap_text(text: str, indent: int = 0, pad: int = 0,
     result = order if not inline else ""
     
     if pad:
-        result = " " * (pad-1)
+        result   = " " * pad
         line_len = pad
+        text     = result + str(text)
+    
+    if visual_width(text) <= width: return str(text)
     
     for i, word in enumerate(styled_words):
         used = line_len + visual_width(word)
@@ -149,11 +273,16 @@ def wrap_text(text: str, indent: int = 0, pad: int = 0,
             else: result += '\n' + ' ' * indent + word
             line_len = indent + visual_width(word)
         else:
-            result += (' ' if result else '') + word
+            if result == " ": result += '' + word
+            else: result += (' ' if result else '') + word
             if from_center: res += ' ' + word
             line_len += visual_width(word) + (margin / 
                 (2 if margin >= 2 else 1))
-                
+    
+    if _internal:
+        rest = wrap_text(rest, indent, pad, inline, 
+               order, from_center, _internal)
+        result += f"\n{rest}" if rest else rest
     if not from_center: return result
     return centered + align.center(res, l, h, lh)
 
