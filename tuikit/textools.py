@@ -259,7 +259,8 @@ def wrap_text(text: str, indent: int = 0, pad: int = 0,
         line_len = pad
         text     = result + str(text)
     
-    if visual_width(text) <= width: return str(text)
+    if visual_width(text) <= width and not order:
+        return str(text)
     
     for i, word in enumerate(styled_words):
         used = line_len + visual_width(word)
