@@ -1,11 +1,10 @@
 [project]
 name = "tuikit"
-version = "0.2.5"
+version = "1.0.0"
 description = "Lightweight TUI utilities: console, text, lists, timezones and logic helpers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Caleb M. Sibanda", email = "darkian.dev@gmail.com" }]
 
 keywords = ["tui", "cui", "console", "timezone", "utilities", "toolkit"]
 

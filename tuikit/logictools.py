@@ -1,4 +1,4 @@
-from typing import Any, NoReturn
+from typing import Any, NoReturn, Callable
 import unicodedata
 import random
 import shutil
@@ -87,6 +87,11 @@ def any_is(*args, eq=None) -> bool:
         if arg is eq: return True
     return False
 
+def any_rel(args: list, rel: Any, func: Callable) -> bool:
+    for arg in args:
+        if func(arg, rel): return True
+    return False
+
 def all_in(*args, eq=None) -> bool:
     if len(args) == 1: return any_in(*args)
             
@@ -106,6 +111,11 @@ def all_is(*args, eq=None) -> bool:
             
     for arg in args:
         if arg is not eq: return False
+    return True
+
+def all_rel(args: list, rel: Any, func: Callable) -> bool:
+    for arg in args:
+        if not func(arg, rel): return False
     return True
 
 def shave(num: int | float, limit: int | float) -> tuple:

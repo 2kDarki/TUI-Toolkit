@@ -1,11 +1,13 @@
-from .exceptions import validate, InputError
 from typing import Any, NoReturn
-from . import logictools
 import unicodedata
 import textwrap
 import time
 import re
 import os
+
+from .exceptions import validate, InputError
+from . import logictools
+
 
 class Align:
     def __init__(self, offset: int = 0):
@@ -50,6 +52,7 @@ class Align:
                  err=err)
         return wrap_text(str(arg), pad, pad)
 
+
 def keep_split(text:str, sep=" "):
     parts = text.split(sep)
     if len(parts) < 2: return parts
@@ -66,6 +69,7 @@ def keep_split(text:str, sep=" "):
             if i != len(parts) - 1: part += sep
         final.append(part)
     return final
+
 
 def transmit(*msg: str, speed: int|float = 0.1,
              hold: int|float = 0.25, 
@@ -111,9 +115,11 @@ def transmit(*msg: str, speed: int|float = 0.1,
     if inline: return text
     if len(paragraphs) == 1: print()
 
+
 def strip_ansi(s:str) -> str:
     if not isinstance(s, str): err(s, "string") 
     return re.sub(r'\x1B[@-_][0-?]*[ -/]*[@-~]', '', s)
+
 
 def visual_width(s:Any) -> int:
     clean = strip_ansi(str(s))
@@ -314,14 +320,14 @@ def wrap_text(text: str,  indent: int = 0,  pad: int = 0,
     if not from_center: return result
     return centered + align.center(res, l, h, lh)
 
-def pathit(path_str: str) -> str:
-    """Abbreviates a path if it becomes too long"""
+def pathit(path_str: str, length: int = 3) -> str:
+    """Abbreviates a path if it becomes too long."""
     if not path_str: return path_str
     path_str = str(path_str)
     prefix   = f"{os.sep}...{os.sep}"
     cwd      = path_str
-    if len(cwd.split(os.sep)) < 3: return cwd
-    return prefix + os.sep.join(cwd.split(os.sep)[-2:])
+    if len(cwd.split(os.sep)) < length: return cwd
+    return prefix + os.sep.join(cwd.split(os.sep)[-length:])
 
 def has_unicode(s:str) -> bool:
     strip_ansi(s)
