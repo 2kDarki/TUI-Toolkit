@@ -4,7 +4,7 @@ import ast
 MARKER = None
 
 
-def tolerant_parse_module(source: list[str]|str,
+def tolerant_parse_module(source: list[str] | str,
                           get: bool = False) -> ast.Module:
     if isinstance(source, str): source = source.splitlines()
     nodes   = []
@@ -75,7 +75,8 @@ def split_top_level_blocks(lines: list[str]
             block_indent = line_indent(line)
             start_lineno = idx + 1
         elif in_block:
-            if line.strip() == "" or in_docstring(line) or line_indent(line) > block_indent:
+            if line.strip() == "" or in_docstring(line) \
+                            or line_indent(line) > block_indent:
                 buffer.append(line)
             else:
                 blocks.append((buffer, start_lineno))

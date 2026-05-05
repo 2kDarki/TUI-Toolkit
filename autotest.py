@@ -69,7 +69,7 @@ def run_tests(test_cls: list[type]|None = None) -> None:
     print(f"Successful: {succeeded}")
     render_trace(result)
     utils.underline(hue=color)
-    utils.sys.exit(int(result.wasSuccessful()))
+    utils.sys.exit(0 if result.wasSuccessful() else 1)
 
 if __name__ == "__main__":
     parser     = argparse.ArgumentParser(description=

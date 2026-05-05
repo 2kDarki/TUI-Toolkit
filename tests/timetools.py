@@ -60,7 +60,7 @@ class TestTimeTools(unittest.TestCase):
             "Friday, 23 March 2007 • 13:15",
             "Friday, 23 March 2007",
             "23 Mar 2007",
-            "2007/03/23"
+            "2007-03-23"
         ]
         
         self.assertEqual(stamp(time        ), exp[0])

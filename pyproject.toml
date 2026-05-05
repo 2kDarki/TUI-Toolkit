@@ -1,6 +1,6 @@
 [project]
 name = "tuikit"
-version = "1.0.0"
+version = "1.1.0"
 description = "Lightweight TUI utilities: console, text, lists, timezones and logic helpers."
 readme = "README.md"
 requires-python = ">=3.10"

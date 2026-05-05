@@ -1,13 +1,14 @@
 """Custom exceptions module"""
 from collections.abc import Iterable
 from datetime import datetime as dt
-from math import floor, ceil, sqrt
+
 from typing import NoReturn, Any
-from . import logictools
 import unicodedata
-import textwrap
-import time
+
+
 import re
+
+from . import logictools
 
 def _notify(msg:str, fg: str|None, bg: str|None, bold:bool, 
             underline:bool, inline:bool, spaced:bool, 
